@@ -1,40 +1,34 @@
-
 using UnityEngine;
 
 public class PlayerCamera : MonoBehaviour
 {
-    [Header("Camera Settings")]
-    public float mouseSensitivity = 150f;
-    public float maxLookAngle = 85f;
+    [Header("Sense")]
+    public float sensX;
+    public float sensY;
 
-    private float xRotation = 0f;
-    private Transform playerBody;
+    [Header("Player Orientation")]
+    public Transform PlayerOrientation;
 
-    void Start()
+    [Header("Camera Rotation")]
+    public float xRotation;
+    public float yRotation;
+
+    private void Start()
     {
-        playerBody = transform.parent;
-
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
-
-    void Update()
+    private void Update()
     {
-        HandleCamera();
-    }
+        // Get mouse input
+        float mouseX = Input.GetAxis("Mouse X") * Time.deltaTime * sensX;
+        float mouseY = Input.GetAxis("Mouse Y") * Time.deltaTime * sensY;
 
-    void HandleCamera()
-    {
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
-
-        // Vertical rotation: camera only
         xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -maxLookAngle, maxLookAngle);
+        yRotation += mouseX;
 
-        transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-
-        // Horizontal rotation: player body
-        playerBody.Rotate(Vector3.up * mouseX);
+        //rotate camera and orientation
+        transform.rotation = Quaternion.Euler(xRotation, yRotation, 0);
+        PlayerOrientation.rotation = Quaternion.Euler(0, yRotation, 0); 
     }
 }
