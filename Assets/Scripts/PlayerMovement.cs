@@ -1,31 +1,90 @@
+
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(CharacterController))]
 public class PlayerMovement : MonoBehaviour
 {
-    [Header ("Player")]
-    public float Speed = 5;
+    [Header("Movement Settings")]
+    public float walkSpeed = 4f;
+    public float sprintSpeed = 6f;
 
-    private Rigidbody rb;
-    private Vector3 Movement;
+    [Header("Gravity")]
+    public float gravity = -20f;
 
-    void Start()
+    [Header("Jump Settings")]
+    public float jumpHeight = 1.2f;
+
+    [Header("Bunny Hop")]
+    public float hopSpeedBonus = 0.4f;
+    public float maxHopBonus = 3f;
+    public float hopTimingWindow = 0.25f;
+
+    private float currentHopBonus;
+    private float lastLandingTime;
+    private bool wasGrounded;
+
+    private CharacterController controller;
+    private Vector3 velocity;
+
+    private void Awake()
     {
-        rb = GetComponent<Rigidbody>();
+        controller = GetComponent<CharacterController>();
     }
 
-    void Update()
+    private void Update()
     {
-        float z = Input.GetAxisRaw("Vertical");
+        bool isGrounded = controller.isGrounded;
+        if (isGrounded && !wasGrounded)
+        {
+            lastLandingTime = Time.time;
+        }
+
+        wasGrounded = isGrounded;
+        HandleJump();
+        HandleMovement();
+    }
+
+    private void HandleJump()
+    {
+        if (controller.isGrounded && Input.GetKeyDown(KeyCode.Space))
+        {
+            if (Time.time - lastLandingTime <= hopTimingWindow)
+            {
+                currentHopBonus = Mathf.Min(currentHopBonus + hopSpeedBonus, maxHopBonus);
+                Debug.Log($"Bhop! Current speed bonus: {currentHopBonus}", this);
+            }
+            else
+            {
+                currentHopBonus = 0f;
+            }
+
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+        }
+    }
+
+    private void HandleMovement()
+    {
         float x = Input.GetAxisRaw("Horizontal");
+        float z = Input.GetAxisRaw("Vertical");
 
-        Movement = new Vector3(x, 0f, z).normalized;
-    }
+        Vector3 move = transform.right * x + transform.forward * z;
+        move = Vector3.ClampMagnitude(move, 1f);
 
-    void FixedUpdate()
-    {
-        Vector3 velocity = transform.TransformDirection(Movement) * Speed;
+        float currentSpeed = Input.GetKey(KeyCode.LeftShift)
+            ? sprintSpeed
+            : walkSpeed;
+        currentSpeed += currentHopBonus;
 
-        rb.linearVelocity = new Vector3(velocity.x, rb.linearVelocity.y, velocity.z);
+        if (controller.isGrounded && velocity.y < 0)
+        {
+            velocity.y = -2f;
+        }
+
+        velocity.y += gravity * Time.deltaTime;
+
+        Vector3 finalMovement = move * currentSpeed;
+        finalMovement.y = velocity.y;
+
+        controller.Move(finalMovement * Time.deltaTime);
     }
 }

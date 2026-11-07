@@ -2,33 +2,26 @@ using UnityEngine;
 
 public class PlayerCamera : MonoBehaviour
 {
-    [Header("Sense")]
-    public float sensX;
-    public float sensY;
+    [Header("Camera Settings")]
+    public float mouseSensitivity = 100f;
+    public Transform playerBody;
 
-    [Header("Player Orientation")]
-    public Transform PlayerOrientation;
-
-    [Header("Camera Rotation")]
-    public float xRotation;
-    public float yRotation;
+    private float xRotation = 0f;
 
     private void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
     }
+
     private void Update()
     {
-        // Get mouse input
-        float mouseX = Input.GetAxis("Mouse X") * Time.deltaTime * sensX;
-        float mouseY = Input.GetAxis("Mouse Y") * Time.deltaTime * sensY;
+        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
+        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
 
         xRotation -= mouseY;
-        yRotation += mouseX;
+        xRotation = Mathf.Clamp(xRotation, -85f, 85f);
 
-        //rotate camera and orientation
-        transform.rotation = Quaternion.Euler(xRotation, yRotation, 0);
-        PlayerOrientation.rotation = Quaternion.Euler(0, yRotation, 0); 
+        transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        playerBody.Rotate(Vector3.up * mouseX);
     }
 }
