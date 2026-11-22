@@ -70,10 +70,14 @@ public class PlayerMovement : MonoBehaviour
         Vector3 move = transform.right * x + transform.forward * z;
         move = Vector3.ClampMagnitude(move, 1f);
 
-        float currentSpeed = Input.GetKey(KeyCode.LeftShift)
-            ? sprintSpeed
-            : walkSpeed;
-        currentSpeed += currentHopBonus;
+        float currentSpeed = walkSpeed;
+
+    if (Input.GetKey(KeyCode.LeftShift))
+    {
+        currentSpeed = sprintSpeed;
+    }
+
+currentSpeed += currentHopBonus;
 
         if (controller.isGrounded && velocity.y < 0)
         {
