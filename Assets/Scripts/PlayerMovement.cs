@@ -21,16 +21,16 @@ public class PlayerMovement : MonoBehaviour
     private float currentHopBonus;
     private float lastLandingTime;
     private bool wasGrounded;
+    private float currentHorizontalSpeed;
 
     private CharacterController controller;
     private Vector3 velocity;
-
     private Animator animator;
 
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
-        animator = GetComponent<Animator>();
+        animator = GetComponentInChildren<Animator>();
     }
 
     private void Update()
@@ -45,8 +45,11 @@ public class PlayerMovement : MonoBehaviour
         HandleJump();
         HandleMovement();
 
-        animator.SetFloat("Speed", new Vector3(velocity.x, 0, velocity.z).magnitude);
-        animator.SetBool("IsGrounded", isGrounded);
+        if (animator != null)
+        {
+            animator.SetFloat("Speed", currentHorizontalSpeed);
+            animator.SetBool("IsGrounded", isGrounded);
+        }
     }
 
     private void HandleJump()
@@ -75,14 +78,11 @@ public class PlayerMovement : MonoBehaviour
         Vector3 move = transform.right * x + transform.forward * z;
         move = Vector3.ClampMagnitude(move, 1f);
 
-        float currentSpeed = walkSpeed;
+        float targetSpeed = Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : walkSpeed;
+        targetSpeed += currentHopBonus;
 
-    if (Input.GetKey(KeyCode.LeftShift))
-    {
-        currentSpeed = sprintSpeed;
-    }
-
-currentSpeed += currentHopBonus;
+        // Track actual horizontal speed for the Animator
+        currentHorizontalSpeed = move.magnitude * targetSpeed;
 
         if (controller.isGrounded && velocity.y < 0)
         {
@@ -91,7 +91,7 @@ currentSpeed += currentHopBonus;
 
         velocity.y += gravity * Time.deltaTime;
 
-        Vector3 finalMovement = move * currentSpeed;
+        Vector3 finalMovement = move * targetSpeed;
         finalMovement.y = velocity.y;
 
         controller.Move(finalMovement * Time.deltaTime);
