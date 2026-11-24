@@ -1,4 +1,3 @@
-
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
@@ -26,9 +25,12 @@ public class PlayerMovement : MonoBehaviour
     private CharacterController controller;
     private Vector3 velocity;
 
+    private Animator animator;
+
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
+        animator = GetComponent<Animator>();
     }
 
     private void Update()
@@ -42,6 +44,9 @@ public class PlayerMovement : MonoBehaviour
         wasGrounded = isGrounded;
         HandleJump();
         HandleMovement();
+
+        animator.SetFloat("Speed", new Vector3(velocity.x, 0, velocity.z).magnitude);
+        animator.SetBool("IsGrounded", isGrounded);
     }
 
     private void HandleJump()
